@@ -84,4 +84,5 @@ class Crawler:
 
 
 if __name__ == '__main__':
-    Crawler(urls=['/shop/funny+clothing']).run()
+    urls = ['/shop/one+piece+drawstring-bags', '/shop/80s+music+baby-tshirts', '/shop/funny+clothing']
+    Crawler(urls=urls).run()
