@@ -15,8 +15,8 @@ client = MongoClient(os.getenv('ATLAS_URI'))
 db = client[os.getenv('DB_NAME')]
 collection = db[os.getenv('COLLECTION_NAME')]
 
-# unique keyword and iaCode
-collection.create_index([('keyword', 1), ('iaCode', 1)], unique=True)
+# unique name for the collection
+collection.create_index('keyword', unique=True)
 
 
 def download_url(url: str) -> str:
@@ -49,20 +49,21 @@ class Crawler:
         # first remove the /shop/ from the links
         keyword_and_category = [link.replace('/shop/', '') for link in links]
 
-        # remove keywords that are already in the set
-        keyword_and_category = [keyword for keyword in keyword_and_category if keyword not in self.keywords]
-        self.keywords.update(keyword_and_category)
+        # keyword = split the keyword_and_category by +
+        keyword_and_category = [keyword.split('+') for keyword in keyword_and_category]
+
+        # remove last element from the list and join the rest of the elements
+        keywords = [' '.join(keyword[:-1]) for keyword in keyword_and_category]
+
+        keywords = [keyword for keyword in keywords if keyword not in self.keywords]
+        self.keywords.update(keywords)
 
         # insert into mongo if enabled
         if is_enable_mongo:
-            for keyword in keyword_and_category:
-                data = keyword.split('+')
-
-                iaCode = data.pop()
-                data = '+'.join(data).replace('+', ' ')
-
+            for keyword in keywords:
                 try:  # insert into mongo
-                    collection.insert_one({'keyword': data, 'iaCode': iaCode})
+                    # print(keyword)
+                    collection.insert_one({'keyword': keyword})
                 except Exception as e:
                     print(e)
 
